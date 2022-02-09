@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserDAO">
+
+	
+
+	<insert id="insertUser" parameterType="user">
+		INSERT INTO userTBL (email, name, no,password,address)
+		VALUES(#{email},#{name},user_seq.nextval,#{password},#{address})
+	</insert>
+	
+	<select id="selectUser" parameterType="user" resultType="user">
+	
+	select * from userTBL where email = #{email} and password = #{password}
+	
+	</select> 
+	
+	<select id="checkID" parameterType="String" resultType="user">
+	select * from userTBL where email=#{email}
+	</select>
+	
+	<select id="userList" resultType="com.toy.biz.user.UserVO" parameterType="com.toy.biz.util.Page">
+		select * from (select b.*,ROWNUM as rnum from(select * from userTBL 
+		<if test='option eq "email".toString()'>
+		<where>
+		email like '%'|| #{search} || '%'
+		</where>
+		</if>
+		<if test='option eq "authority".toString()'>
+		<where>
+		authority like '%'|| #{search} || '%'
+		
+		</where>
+		</if>
+		order by no)b) where rnum between #{numstart} and #{numend}
+		
+	</select>
+	<select id="userCount" resultType="int">
+		select count(*) from userTBL
+	</select> 
+	
+	<delete id="deleteUser" parameterType="int">
+		delete from userTBL 
+		<where>
+		
+		no=#{no}
+		</where>
+	</delete>
+	
+</mapper>

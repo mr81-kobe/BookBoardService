@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="bookDAO">
+
+	<select id="getBookList" resultType="book" parameterType="com.toy.biz.util.Page">
+	select * from(select ROWNUM as rnum ,b.* from(select * from Book 
+	
+	<where>
+	
+	<if test='option eq "title".toString()'>
+	
+	title like '%' ||  #{search} || '%'
+	
+	</if>
+	
+	<if test='option eq "author".toString()'>
+	
+	author like '%' ||  #{search} || '%'
+	
+	</if>
+	
+	<if test='option eq "publisher".toString()'>
+	
+	publisher like '%' ||  #{search} || '%'
+	
+	</if>
+	
+	</where> 
+
+	order by no) b) where rnum between #{numstart} and #{numend} 
+	</select> 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="getBookCount" resultType="int" parameterType="hashMap">
+		select count(*) from book 
+		
+		<where>
+	
+	<if test='option eq "title".toString()'>
+	
+	title like '%' ||  #{search} || '%'
+	
+	</if>
+	
+	<if test='option eq "author".toString()'>
+	
+	author like '%' ||  #{search} || '%'
+	
+	</if>
+	
+	<if test='option eq "publisher".toString()'>
+	
+	publisher like '%' ||  #{search} || '%'
+	
+	</if>
+	
+	</where> 
+		
+		
+	</select>
+	
+	<select id="getLib" resultType="com.toy.biz.board.book.LibVO" parameterType="com.toy.biz.util.Page">
+	select * from(select ROWNUM as rnum ,b.* from(select * from Lib 
+	<if test="search !=null">
+	<where>
+	
+	address like '%' ||  #{search} || '%'
+	
+	</where>
+	</if>
+	
+	) b) where rnum between #{numstart} and #{numend} 
+	</select>
+	
+	<select id="getLibList" resultType="com.toy.biz.board.book.LibVO"
+	parameterType="com.toy.biz.util.Page">
+
+	select * from(select ROWNUM as rnum ,b.* from(select * from Lib
+	<if test='option eq "name".toString()'>
+		<where>
+
+			name like '%' || #{search} || '%'
+
+		</where>
+	</if>
+
+	<if test='option eq "address".toString()'>
+		<where>
+		address like '%' || #{search} || '%'
+		</where>
+	</if>
+
+	) b) where rnum between #{numstart} and #{numend}
+
+</select>
+	
+	<select id="getCount" parameterType="String" resultType="int">
+	
+	select count(*) from lib 
+	<if test="_parameter !=null">
+		<where>
+	 		address like '%' ||  #{_parameter} || '%'
+		</where>
+	</if>
+	</select>
+	
+	<select id="getBook" parameterType="String" resultType="com.toy.biz.board.book.BookVO">
+	
+		select * from book where title = #{title}
+	</select>
+	<select id="selectBook" parameterType="int" resultType="com.toy.biz.board.book.BookVO">
+	
+		select * from book where no = #{no}
+	</select>
+	
+	<select id="getLibrary" parameterType="int" resultType="com.toy.biz.board.book.LibVO">
+	
+		select * from Lib where no=#{phone}
+	</select>
+	<select id="getCommentList" parameterType="com.toy.biz.board.book.BookPageing" resultType="com.toy.biz.board.LibCommentVo">
+		select * from (select ROWNUM as rnum, b.* from (select * from libComment where lbNo =#{lbNo} ) b) where rnum between #{numstart} and #{numend} 
+	</select>
+	
+	<select id="getCountComment" parameterType="int" resultType="int" >
+		select count(*) from commentTBL where BoardNO =#{no}
+	</select>
+	<insert id="insertComment" parameterType="com.toy.biz.board.LibCommentVo">
+		insert into libComment(no,writer,content,lbNo,ration) values(comment_seq.nextval,#{writer},#{content},#{lbNo},#{ration})
+	</insert>
+	
+	<!-- 평균 별점 구하고 업데이트 -->
+	<select id="getAVG" parameterType="int" resultType="double">
+	select AVG(ration) as avg from libComment where lbNo=#{no}
+	</select>
+	<update id="setRation" parameterType="hashMap">
+		update lib set ration =#{ration} where no=#{no}
+	</update>
+
+	<delete id="deleteComment" parameterType="int">
+	delete from libComment where no =#{no}
+	
+	</delete>
+	
+	<update id="updateComment" parameterType="hashMap">
+		update libComment set content=#{content} , ration=#{ration} where no=#{no}
+		
+	</update> 
+	
+	
+	
+	<select id="bestLib" resultType="com.toy.biz.board.book.LibVO">
+		select  * from (select Lib.*, RANK() OVER(order by ration desc) as ra from Lib)b where ra BETWEEN 1 and 5
+	</select>
+	
+	<insert id="bookLike" parameterType="com.toy.biz.board.book.LikeVO">
+		 insert into likeTBL(seq,id,love,bookNo) values(seq_likeTBL.nextval , #{id},#{love},#{bookNo})
+	
+	</insert>
+	<delete id="bookDisLike" parameterType="com.toy.biz.board.book.LikeVO">
+		delete from likeTBL where id=#{id} and bookNo=#{bookNo}
+		
+	</delete>
+
+	<update id="updateLike" parameterType="hashMap">
+		update book set  good =#{love} where no=#{no}
+	
+	</update>
+	
+	<select id="getLikeCount" parameterType="int" resultType="int">
+		select count(*) from likeTBL where bookNo =#{bookNo} 
+	</select>
+	<select id="dCheck"  parameterType="hashMap" resultType="com.toy.biz.board.book.LikeVO">
+	
+		select * from likeTBL where id=#{id} and bookNo =#{bookNo}
+	</select>
+
+
+<!--admin book-->
+<update id="updateBook" parameterType="com.toy.biz.board.book.BookVO" > 
+
+	update book set title=#{title}, author=#{author}, publisher=#{publisher}, price=#{price}, description=#{description} where no=#{no}
+
+</update>
+
+<insert id="insertBook" parameterType="com.toy.biz.board.book.BookVO">
+	insert into book(no,title,author,publisher,price,description,img_url) values((select NVL(MAX(no),0)+1 from Book),#{title},#{author},#{publisher},#{price},#{description},#{img_url})
+</insert>
+
+<update id="updateLib" parameterType="com.toy.biz.board.book.LibVO" >
+
+	update lib set name = #{name} , address =#{address}, phone=#{phone}, url=#{url}, type=#{type} 
+	
+	<if test="we != null">
+	,we=#{we}
+	
+	</if>
+	<if test="kung != null">
+	,kung=#{kung}
+	
+	</if>
+	<where>
+	no=#{no}
+	
+	</where>
+</update>
+
+
+<insert id="insertLib" parameterType="com.toy.biz.board.book.LibVO">
+insert into lib(name,address,phone,url,type,we,kung,no) values(#{name},#{address},#{phone},#{url},#{type},#{we},#{kung} ,(select NVL(MAX(no),0)+1 from lib))
+
+</insert>
+
+</mapper>

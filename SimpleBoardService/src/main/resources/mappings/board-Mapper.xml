@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="boardDAO">
+
+	<insert id="insertBoard" parameterType="board">
+	insert into boards (title,writer,content,tag,no,filename,libNo) values(#{title},#{writer},#{content},#{tag},board_seq.nextval,#{fileName},#{libNo})
+	
+	</insert>
+	
+	 <!-- <select id="getBoardList" parameterType="" resultSets="board">
+	 select * from(select ROWNUM rum, b from (select * from boards order by time desc) n) where rum between #{page} and #{end}
+	 
+	 </select>  -->
+	
+	<update id="updateBoard" parameterType="board">
+	update boards set title =#{title}, content=#{content} where no=#{no}
+	</update>
+	
+	
+	<delete id="deleteBoard" parameterType="int">
+	
+	delete from boards where no =#{no}
+	</delete>
+
+	
+
+	<select id="pageBoard" parameterType ="com.toy.biz.util.Page" resultType="board">
+	
+	select * from (select ROWNUM as rnum ,b.* from (select * from boards order by time desc)b )where rnum between #{numstart} and #{numend}
+	
+	</select> 
+	<select id="boardAmount" resultType="int">
+		select count(*) from boards
+	</select> 
+	<update id="countUp" parameterType="int">
+	
+	update boards set cnt =cnt+1 where no=#{no}
+	</update>
+	
+	<select id ="getBoard" parameterType="int" resultType="board" >
+		select * from boards where no=#{no}
+	</select>
+	 
+	 
+	 
+	 <!--여기부터 댓글 관리 목록 -->
+	<insert id="insertComment" parameterType="comment">
+		insert into commentTBL (no,boardNo,writer,content ) values(comment_seq.nextval, #{boardNo},#{writer},#{content})
+	
+	</insert> 
+	
+	<select id="selectComment" parameterType="com.toy.biz.board.CommentPageing" resultType="comment">
+		
+		select * from (select ROWNUM as rnum,b.* from(select * from (select * from commentTBL where boardNo =#{boardNo} ) order by time )b )where rnum between #{numstart}  and #{numend}
+		
+	</select>
+	<select id="commentCount" resultType="int">
+		select count(*) from commentTBL
+	</select>
+	
+	
+	<update id="updateComment" parameterType="comment" >
+		UPDATE commentTBL set content=#{content} where no=#{no}
+	</update>
+	
+	<delete id="deleteComment" parameterType="int" >
+		delete from commentTBL where no=#{no}
+	</delete>
+	<select id="hotBoard" resultType="board">
+		select * from ( select b.* , RANK() OVER(order by cnt desc) as ra from (select * from boards a LEFT OUTER JOIN LIB b ON a.libno =b.no where a.libno is not null ) b) where ra BETWEEN 1 and 5 
+	</select>
+</mapper>
